@@ -92,6 +92,25 @@ app.get('/getCustomerDetails/:bId/:mobile', (req, res) => {
     })
 })
 
+app.get('/getPlanByTitle/:bId/:plan',(req,res)=>{
+    Businessaccount.aggregate([
+        { $match: { _id: new ObjectId(req.params.bId) } },
+        {
+            $project: {
+                plans: {
+                    $filter: {
+                        input: "$plans",
+                        as: "plan",
+                        cond: { $eq: ["$$plan.title", req.params.plan] }
+                    }
+                }
+            }
+        }
+    ]).then((plan) => {
+        res.json(plan);
+    })
+})
+
 app.get('/getServices/:bId',(req,res)=>{
     Businessaccount.aggregate([
         { $match: { _id: new ObjectId(req.params.bId) } },
@@ -107,7 +126,25 @@ app.post('/addTransaction/:bId', (req, res) => {
         { $push: { transactions: req.body } },
         { new: true }
     ).then((business) => {
-        res.json(req.body.totalBill);
+        res.json(req.body.finalBill);
+    })
+})
+
+app.get('/getAllCustomersByBusiness/:bId', (req, res) => {
+    Businessaccount.aggregate([
+        { $match: { _id: new ObjectId(req.params.bId) } },
+        { $project : { customers: 1 } }
+    ]).then((customers)=>{
+        res.json(customers);
+    })
+})
+
+app.get('/getAllTransactionsByBusiness/:bId', (req, res) => {
+    Businessaccount.aggregate([
+        { $match: { _id: new ObjectId(req.params.bId) } },
+        { $project : { transactions: 1 } }
+    ]).then((transactions)=>{
+        res.json(transactions);
     })
 })
 
